@@ -6,7 +6,7 @@ var config = require("getconfig")
 
 class Chewb {
 
-  constructor(envarsPath) {
+  constructor(envarsPath = ".env") {
     require("dotenv").config({ path: envarsPath })
     console.log(process.env)
     this.app = express()
@@ -31,6 +31,6 @@ class Chewb {
   }
 }
 
-const chewb = new Chewb()
+const chewb = new Chewb("envvars")
 
 module.exports = chewb
