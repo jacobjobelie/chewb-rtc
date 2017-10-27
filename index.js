@@ -1,53 +1,36 @@
-const path = require('path')
+var express = require("express")
+var cors = require("cors")
 
+var sockets = require("signal-master/sockets")
+var config = require("getconfig")
 
-const ENVS = path.join(__dirname, 'envvars')
+class Chewb {
 
-require('dotenv').config({ path: ENVS })
+  constructor(envarsPath) {
+    require("dotenv").config({ path: envarsPath })
+    console.log(process.env)
+    this.app = express()
+    this.app.use(cors())
 
-const Chewb = require('chewb-server')
-const ChewbPassport = require('chewb-passport')
-let server = new Chewb(ENVS)
+    let _port = process.env.PORT || 8080
+    let _host = process.env.SERVER_HOST || "127.0.0.1"
+    console.log(_host, _port)
 
-const Peer = require('./peer')
+    var router = express.Router()
 
-let strats = [{
-  name: 'facebook',
-  clientId: process.env.FACEBOOK_ID,
-  clientSecret: process.env.FACEBOOK_SECRET,
-  authUrl: '/login/facebook',
-  redirectUrl: '/login/facebook/return',
-  callbackUrl: `http://localhost:${process.env.EXPRESS_PORT}/login/facebook/success`
-}, {
-  name: 'instagram',
-  scope: ['public_content'],
-  clientId: process.env.INSTAGRAM_ID,
-  clientSecret: process.env.INSTAGRAM_SECRET,
-  authUrl: '/login/instagram',
-  redirectUrl: '/login/instagram/return',
-  callbackUrl: `http://localhost:${process.env.EXPRESS_PORT}/login/instagram/success`
-}, {
-  name: 'youtube',
-  scope: [
-    "https://www.googleapis.com/auth/youtube.upload",
-    "https://www.googleapis.com/auth/youtube",
-    "https://www.googleapis.com/auth/youtubepartner",
-    'https://www.googleapis.com/auth/youtube.readonly',
-    'https://www.googleapis.com/auth/youtube.force-ssl'
-  ],
-  clientId: process.env.YOUTUBE_ID,
-  clientSecret: process.env.YOUTUBE_SECRET,
-  authUrl: '/login/youtube',
-  redirectUrl: '/login/youtube/return',
-  callbackUrl: `http://localhost:${process.env.EXPRESS_PORT}/login/youtube/success`
-}]
+    this.app.use(router)
 
-let chewbPassport = new ChewbPassport(
-  server.app,
-  strats, {
-    host: `http://${server.host}:${server.port}/`,
-    baseRoute: '',
-    logOut: true
-  })
+    router.get("/", function(req, res) {
+      res.status(200).send("nothing to see here...")
+    })
 
-const peer = Peer(server.app, server.server, server.io)
+    var server = this.app.listen(_port)
+    sockets(server, config) // config is the same that server.js uses
+
+    this.server = server
+  }
+}
+
+const chewb = new Chewb()
+
+module.exports = chewb
